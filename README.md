@@ -21,7 +21,7 @@ If you have `make` on your system run `make install`, be sure your `$GOPATH` is 
 
 By default `sigsci-sound` will look for the configuration file in its current direcotry, e.g. `./sigsci-sounds.conf`. However, you can export a different location using the variable `SIGSCI_SOUNDS_CONFIG`, e.g. `export SIGSCI_SOUNDS_CONFIG=/etc/sigsci/sigsci-sonds.conf`.
 
-The configuration file is JSON format. It requires your API account username and password, and at least one tag entry. see the provided configuration file as an example.
+The configuration file is JSON format. It requires your API account username and password, and at least one tag entry. See the provided [configuration file] (https://github.com/foospidy/sigsci-sounds/blob/master/sigsci-sounds.conf) as an example.
 
 #### Defining a tag entry
 
