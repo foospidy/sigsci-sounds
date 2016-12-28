@@ -20,7 +20,6 @@ const (
     defaultConfigFile   = "./sigsci-sounds.conf"
     api_url             = "https://dashboard.signalsciences.net/api/v0"
     login_endpoint      = api_url + "/auth/login"
-    timeseries_endpoint = api_url + "/corps/phillip_lome_hab/sites/www.lomehab.com/timeseries/requests"
     interval            = 600
 )
 
@@ -103,6 +102,9 @@ func main() {
     // add WaitGroups for the number of tags in the configuration
     // concurrency implementaiton based on https://www.goinggo.net/2014/01/concurrency-goroutines-and-gomaxprocs.html
     wg.Add(len(config.Tags))
+	
+    // set Timeseries endpoint
+    timeseries_endpoint = api_url + "/corps/" + config.CorpName + "/sites/" + config.SiteName + "/timeseries/requests"
 
     // get credentials from configuration and authenticate to SigSci API
     form := url.Values{
@@ -129,7 +131,7 @@ func main() {
     
     // for each tag in configuration launch a goroutine
     for i := range(config.Tags) {
-        // get tag configuraiton
+        // get tag configuration
         tag   := config.Tags[i].Name
         sound := config.Tags[i].Sound
         text  := config.Tags[i].Text
