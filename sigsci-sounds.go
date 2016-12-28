@@ -104,7 +104,7 @@ func main() {
     wg.Add(len(config.Tags))
 	
     // set Timeseries endpoint
-    timeseries_endpoint = api_url + "/corps/" + config.CorpName + "/sites/" + config.SiteName + "/timeseries/requests"
+    var timeseries_endpoint = api_url + "/corps/" + config.CorpName + "/sites/" + config.SiteName + "/timeseries/requests"
 
     // get credentials from configuration and authenticate to SigSci API
     form := url.Values{
