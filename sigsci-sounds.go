@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	defaultConfigFile   = "./sigsci-sounds.conf"
+    defaultConfigFile   = "./sigsci-sounds.conf"
     api_url             = "https://dashboard.signalsciences.net/api/v0"
     login_endpoint      = api_url + "/auth/login"
     timeseries_endpoint = api_url + "/corps/phillip_lome_hab/sites/www.lomehab.com/timeseries/requests"
@@ -27,6 +27,8 @@ const (
 type Config struct {
     Username string
     Password string
+    CorpName string
+    SiteName string
 	Tags []struct {
 		Name  string
 		Sound string
