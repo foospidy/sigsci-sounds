@@ -27,7 +27,7 @@ The configuration file is JSON format. It requires your API account username and
 
 Each entry requires three fields: name, sound, and text.
 
-- __name__ is the actual tag "short name" you want to monitor for. This can be a Signal Sciences default sytem tag, or a custom tag.
+- __name__ is the actual tag "short name" you want to monitor. This can be a Signal Sciences default sytem tag, or a custom tag.
 - __sound__ is the absolute path to the sound file you want to play for the specified tag name. Optionally, you can set this value to `say`, which will cause your system to speak the text configured in the __text__ field.
 - __text__ is the text to be spoken by the system when the configured tag event occurs. This only occurs when the __sound__ field has the value of `say`. This field must be presetn, and at minimum an empty value, e.g. `"text": ""`
 
