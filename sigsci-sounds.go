@@ -122,6 +122,11 @@ func main() {
         log.Fatal(fmt.Sprintf("Error connecting to API: %v", transportErr))
     }
 
+    // check for invalid login
+    if("/login?p=invalid" == resp.Header["Location"][0]) {
+        log.Fatal("Invalid Login")
+    }
+
     // get session cookie and store in cookie jar
     session  = resp.Cookies()
     jar, _  := cookiejar.New(nil)
@@ -202,20 +207,23 @@ func main() {
                 // sleep for 1 second and
                 // if value is greator than 0, then
                 // play sound
-                for i := range(t.Data[0].Data) {
-                    time.Sleep(time.Second)
-                    if(t.Data[0].Data[i] > 0) {
-                        execErr := exec.Command(binary, args...).Run()
+                if(0 != len(t.Data)){
+                    for i := range(t.Data[0].Data) {
+                        time.Sleep(time.Second)
+                        if(t.Data[0].Data[i] > 0) {
+                            execErr := exec.Command(binary, args...).Run()
 
-                        if execErr != nil {
-                            fmt.Println(tag)
-                            log.Fatal(execErr)
+                            if execErr != nil {
+                                fmt.Println(tag)
+                                log.Fatal(execErr)
+                            }
                         }
                     }
+
+                    // set new from and until values for next API call 
+                    from_until = fmt.Sprintf("&from=%d&until=%d", t.Data[0].Until, t.Data[0].Until + interval)
                 }
 
-                // set new from and until values for next API call 
-                from_until = fmt.Sprintf("&from=%d&until=%d", t.Data[0].Until, t.Data[0].Until + interval)
                 // sleep for interval before doing it all over again and playing more sounds for this tag
                 time.Sleep(time.Second * interval)
             }
