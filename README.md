@@ -19,7 +19,7 @@ Note: obviously you must be a Signal Sciences customer to make use of this utili
 
 If you have `make` on your system run `make install`, be sure your `$GOPATH` is set. Or you can run `make run` to build and run `sigsci-sounds`.
 
-By default `sigsci-sound` will look for the configuration file in its current direcotry, e.g. `./sigsci-sounds.conf`. However, you can export a different location using the variable `SIGSCI_SOUNDS_CONFIG`, e.g. `export SIGSCI_SOUNDS_CONFIG=/etc/sigsci/sigsci-sonds.conf`.
+By default `sigsci-sound` will look for the configuration file in its current directory, e.g. `./sigsci-sounds.conf`. However, you can export a different location using the variable `SIGSCI_SOUNDS_CONFIG`, e.g. `export SIGSCI_SOUNDS_CONFIG=/etc/sigsci/sigsci-sounds.conf`.
 
 The configuration file is JSON format. It requires your API account username and password, corp name and site name you want to monitor, and at least one tag entry. See the provided [configuration file] (https://github.com/foospidy/sigsci-sounds/blob/master/sigsci-sounds.conf) as an example.
 
