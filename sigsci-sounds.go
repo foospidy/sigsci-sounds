@@ -85,6 +85,28 @@ func initConfig() Config {
         log.Fatal(jsonErr)
     }
 
+    // override with ENV variable configs
+    email := os.Getenv("SIGSCI_EMAIL")
+    password := os.Getenv("SIGSCI_PASSWORD")
+    corp := os.Getenv("SIGSCI_CORP")
+    site := os.Getenv("SIGSCI_SITE")
+	
+	if len(email) != 0 {
+		c.Username = email
+    }
+
+    if len(password) != 0 {
+		c.Password = password
+    }
+
+    if len(corp) != 0 {
+		c.CorpName = corp
+    }
+
+    if len(site) != 0 {
+		c.SiteName = site
+    }
+    
     return c
 }
 
