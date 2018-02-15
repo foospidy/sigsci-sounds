@@ -18,11 +18,12 @@ import (
 
 const (
     defaultConfigFile   = "./sigsci-sounds.conf"
-    api_url             = "https://dashboard.signalsciences.net/api/v0"
-    login_endpoint      = api_url + "/auth/login"
+    apiURL             = "https://dashboard.signalsciences.net/api/v0"
+    loginEndpoint      = apiURL + "/auth/login"
     interval            = 600
 )
 
+// Config Configuration for sigsci-sounds
 type Config struct {
     Username string
     Password string
@@ -35,6 +36,7 @@ type Config struct {
 	}
 }
 
+// Timeseries Timeseries data from signal sciences
 type Timeseries struct {
 	Data []struct {
 		Data  []int
@@ -104,7 +106,7 @@ func main() {
     wg.Add(len(config.Tags))
 	
     // set Timeseries endpoint
-    var timeseries_endpoint = api_url + "/corps/" + config.CorpName + "/sites/" + config.SiteName + "/timeseries/requests"
+    var timeseriesEndpoint = apiURL + "/corps/" + config.CorpName + "/sites/" + config.SiteName + "/timeseries/requests"
 
     // get credentials from configuration and authenticate to SigSci API
     form := url.Values{
@@ -112,7 +114,7 @@ func main() {
         "password": []string{config.Password},
     }
 
-    req, _ := http.NewRequest("POST", login_endpoint, strings.NewReader(form.Encode()))
+    req, _ := http.NewRequest("POST", loginEndpoint, strings.NewReader(form.Encode()))
     req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
     client                          := &http.Client{}
     var transport http.RoundTripper = &http.Transport{}
@@ -130,7 +132,7 @@ func main() {
     // get session cookie and store in cookie jar
     session  = resp.Cookies()
     jar, _  := cookiejar.New(nil)
-    u, _    := url.Parse(timeseries_endpoint)
+    u, _    := url.Parse(timeseriesEndpoint)
     jar.SetCookies(u, session)
     client.Jar = jar
     
@@ -149,12 +151,12 @@ func main() {
             // initialize needed variables
             var command, content string
             var now        = int32(time.Now().Unix())
-            var from_until = fmt.Sprintf("&from=%d&until=%d", now - interval, now)
+            var fromUntil = fmt.Sprintf("&from=%d&until=%d", now - interval, now)
 
             // start infinate loop
             for {
                 // call timeseries API endpoint to get json payload
-                req, _          = http.NewRequest("GET", timeseries_endpoint + "?&tag=" + tag + from_until, nil)
+                req, _          = http.NewRequest("GET", timeseriesEndpoint + "?&tag=" + tag + fromUntil, nil)
                 resp, clientErr := client.Do(req)
 
                 if clientErr != nil {
@@ -221,7 +223,7 @@ func main() {
                     }
 
                     // set new from and until values for next API call 
-                    from_until = fmt.Sprintf("&from=%d&until=%d", t.Data[0].Until, t.Data[0].Until + interval)
+                    fromUntil = fmt.Sprintf("&from=%d&until=%d", t.Data[0].Until, t.Data[0].Until + interval)
                 }
 
                 // sleep for interval before doing it all over again and playing more sounds for this tag
