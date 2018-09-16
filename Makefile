@@ -1,7 +1,7 @@
 install:
-	go get -u github.com/golang/lint/golint
+	go get -u golang.org/x/lint/golint
 	go get github.com/faiface/beep
-	cd ../../.. && go install github.com/foospidy/sigsci-sounds && cd github.com/foospidy/sigsci-sounds
+	#cd ../../.. && go install github.com/foospidy/sigsci-sounds && cd github.com/foospidy/sigsci-sounds
 
 lint:
 	clear

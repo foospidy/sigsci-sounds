@@ -112,7 +112,8 @@ func initConfig() Config {
     return c
 }
 
-func MakeRequest(username string, password string, endpoint string, ch chan<-string) {
+// APIRequest authenticates and makes a request to specified endpoint.
+func APIRequest(username string, password string, endpoint string, ch chan<-string) {
     form := url.Values{
         "email":    []string{username},
         "password": []string{password},
@@ -179,7 +180,7 @@ func main() {
     // set Timeseries endpoint
     var timeseriesEndpoint = apiURL + "/corps/" + config.CorpName + "/sites/" + config.SiteName + "/timeseries/requests"
  
-    api_response_channel := make(chan string)
+    apiResponseChannel := make(chan string)
     
     var now = int32(time.Now().Unix())
 
@@ -194,9 +195,9 @@ func main() {
             sound := config.Tags[i].Sound
             endpoint := timeseriesEndpoint + "?tag=" + tag + fromUntil
 
-            go MakeRequest(config.Username, config.Password, endpoint, api_response_channel)
+            go APIRequest(config.Username, config.Password, endpoint, apiResponseChannel)
             
-            var payload = <-api_response_channel
+            var payload = <-apiResponseChannel
 
             // initialize Timeseries object and load json payload data
             var t Timeseries
