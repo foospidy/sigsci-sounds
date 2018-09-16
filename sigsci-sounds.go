@@ -162,7 +162,7 @@ func APIRequest(username string, password string, endpoint string, ch chan<-stri
 }
 
 func main() {
-    fmt.Println("Initiating SigSci Sound!")
+    fmt.Println("Initiating SigSci Sounds!")
     fmt.Println("Enjoy the soothing sounds of attacks and anomalies...")
     fmt.Println("Press Ctrl+C to terminate.")
     runtime.GOMAXPROCS(2)
@@ -241,5 +241,5 @@ func main() {
     }
     // wait for WaitGroups
     wg.Wait()
-    fmt.Println("\nTerminating SigSci Sound!")
+    fmt.Println("\nTerminating SigSci Sounds!")
 }
