@@ -35,7 +35,6 @@ type Config struct {
 	Tags []struct {
 		Name  string
 		Sound string
-        Text string
 	}
 }
 
