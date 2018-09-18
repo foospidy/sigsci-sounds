@@ -16,11 +16,12 @@ import (
 
     "github.com/faiface/beep"
     "github.com/faiface/beep/wav"
+    "github.com/faiface/beep/mp3"
 	"github.com/faiface/beep/speaker"
 )
 
 const (
-    defaultConfigFile   = "./sigsci-sounds.conf"
+    defaultConfigFile   = "themes/sigsci-sounds-osx.conf"
     apiURL             = "https://dashboard.signalsciences.net/api/v0"
     loginEndpoint      = apiURL + "/auth/login"
     interval            = 300
@@ -161,6 +162,36 @@ func APIRequest(username string, password string, endpoint string, ch chan<-stri
     ch <- fmt.Sprintf("%s", payload)
 }
 
+func playWAV(sound string) {
+    f, _ := os.Open(sound)
+    s, format, _ := wav.Decode(f)
+    playing := make(chan struct{})
+
+    speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+    speaker.Play(beep.Seq(s, beep.Callback(func() {
+        // Callback after the stream Ends
+        close(playing)
+    })))
+    <-playing
+
+    f.Close()
+}
+
+func playMP3(sound string) {
+    f, _ := os.Open(sound)
+    s, format, _ := mp3.Decode(f)
+    playing := make(chan struct{})
+
+    speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+    speaker.Play(beep.Seq(s, beep.Callback(func() {
+        // Callback after the stream Ends
+        close(playing)
+    })))
+    <-playing
+
+    f.Close()
+}
+
 func main() {
     fmt.Println("Initiating SigSci Sounds!")
     fmt.Println("Enjoy the soothing sounds of attacks and anomalies...")
@@ -186,7 +217,6 @@ func main() {
 
     for {
         var fromUntil = fmt.Sprintf("&from=%d&until=%d", now - interval, now)
-        //mixer := new(beep.Mixer)
 
         // for each tag in configuration launch a goroutine
         for i := range(config.Tags) {
@@ -196,7 +226,7 @@ func main() {
             endpoint := timeseriesEndpoint + "?tag=" + tag + fromUntil
 
             go APIRequest(config.Username, config.Password, endpoint, apiResponseChannel)
-            
+
             var payload = <-apiResponseChannel
 
             // initialize Timeseries object and load json payload data
@@ -219,18 +249,11 @@ func main() {
                     time.Sleep(time.Second)
                     if(t.Data[0].Data[i] > 0) {
 
-                        f, _ := os.Open(sound)
-                        s, format, _ := wav.Decode(f)
-                        playing := make(chan struct{})
-
-                        //mixer.Play(s)
-                        speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-
-                        speaker.Play(beep.Seq(s, beep.Callback(func() {
-                            // Callback after the stream Ends
-                            close(playing)
-                        })))
-                        <-playing
+                        if(strings.HasSuffix(sound, ".mp3")) {
+                            playMP3(sound)
+                        } else {
+                            playWAV(sound)
+                        }
                     }
                 }
             }
@@ -239,6 +262,7 @@ func main() {
         // sleep for interval before doing it all over again
         time.Sleep(time.Second * interval)
     }
+
     // wait for WaitGroups
     wg.Wait()
     fmt.Println("\nTerminating SigSci Sounds!")
