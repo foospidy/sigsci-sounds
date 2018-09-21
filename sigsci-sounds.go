@@ -58,7 +58,7 @@ type Timeseries struct {
 }
 
 // initConfig reads the configuration file and returns a config object.
-func initConfig() Config {
+func initConfig(initVariables bool) Config {
 	// get configuration file path
 	configFile := os.Getenv("SIGSCI_SOUNDS_CONFIG")
 
@@ -77,7 +77,7 @@ func initConfig() Config {
 	file, e := ioutil.ReadFile(configFile)
 
 	if e != nil {
-		log.Fatal("File error: %v\n", e)
+		log.Fatal("Error reading file!")
 	}
 
 	// decode json and load config object
@@ -88,26 +88,28 @@ func initConfig() Config {
 		log.Fatal(jsonErr)
 	}
 
-	// override with ENV variable configs
-	email := os.Getenv("SIGSCI_EMAIL")
-	password := os.Getenv("SIGSCI_PASSWORD")
-	corp := os.Getenv("SIGSCI_CORP")
-	site := os.Getenv("SIGSCI_SITE")
+	if initVariables {
+		// override with ENV variable configs
+		email := os.Getenv("SIGSCI_EMAIL")
+		password := os.Getenv("SIGSCI_PASSWORD")
+		corp := os.Getenv("SIGSCI_CORP")
+		site := os.Getenv("SIGSCI_SITE")
 
-	if len(email) != 0 {
-		c.Username = email
-	}
+		if len(email) != 0 {
+			c.Username = email
+		}
 
-	if len(password) != 0 {
-		c.Password = password
-	}
+		if len(password) != 0 {
+			c.Password = password
+		}
 
-	if len(corp) != 0 {
-		c.CorpName = corp
-	}
+		if len(corp) != 0 {
+			c.CorpName = corp
+		}
 
-	if len(site) != 0 {
-		c.SiteName = site
+		if len(site) != 0 {
+			c.SiteName = site
+		}
 	}
 
 	return c
@@ -192,75 +194,122 @@ func playMP3(sound string) {
 	f.Close()
 }
 
-func main() {
-	fmt.Println("Initiating SigSci Sounds!")
-	fmt.Println("Enjoy the soothing sounds of attacks and anomalies...")
-	fmt.Println("Press Ctrl+C to terminate.")
-	runtime.GOMAXPROCS(2)
+func testConfig() {
+	fmt.Println("Testing sound files for " + os.Getenv("SIGSCI_SOUNDS_CONFIG"))
 
-	var wg sync.WaitGroup
 	var config Config
 
 	// initialize configuration
-	config = initConfig()
+	config = initConfig(false)
 
-	// add WaitGroups for the number of tags in the configuration
-	// concurrency implementaiton based on https://www.goinggo.net/2014/01/concurrency-goroutines-and-gomaxprocs.html
-	wg.Add(len(config.Tags))
+	// for each tag in configuration launch a goroutine
+	for i := range config.Tags {
+		// get tag configuration
+		tag := config.Tags[i].Name
+		sound := config.Tags[i].Sound
 
-	// set Timeseries endpoint
-	var timeseriesEndpoint = apiURL + "/corps/" + config.CorpName + "/sites/" + config.SiteName + "/timeseries/requests"
+		// verify sound file exists
+		_, fileErr := os.Stat(sound)
 
-	apiResponseChannel := make(chan string)
+		if fileErr != nil {
+			log.Fatal("Sound file is missing: ", sound)
+		}
 
-	var now = int32(time.Now().Unix())
+		fmt.Println("Playing sound for " + tag + " (" + sound + ")")
 
-	for {
-		var fromUntil = fmt.Sprintf("&from=%d&until=%d", now-interval, now)
+		if strings.HasSuffix(sound, ".mp3") {
+			playMP3(sound)
+		} else {
+			playWAV(sound)
+		}
+	}
 
-		// for each tag in configuration launch a goroutine
-		for i := range config.Tags {
-			// get tag configuration
-			tag := config.Tags[i].Name
-			sound := config.Tags[i].Sound
-			endpoint := timeseriesEndpoint + "?tag=" + tag + fromUntil
+	fmt.Println("Done!")
+}
 
-			go APIRequest(config.Username, config.Password, endpoint, apiResponseChannel)
+func main() {
+	var test = false
+	if(len(os.Args) > 1) {
 
-			var payload = <-apiResponseChannel
+		if(os.Args[1] == "test") {
+			test = true
+		}
+	}
+	var wg sync.WaitGroup
 
-			// initialize Timeseries object and load json payload data
-			var t Timeseries
+	fmt.Println("Initiating SigSci Sounds!")
 
-			unmarshalErr := json.Unmarshal([]byte(payload), &t)
-			if unmarshalErr != nil {
-				log.Fatal(unmarshalErr)
-			}
+	if test {
+		testConfig()
+	} else {
+		fmt.Println("Enjoy the soothing sounds of attacks and anomalies...")
+		fmt.Println("Press Ctrl+C to terminate.")
+		runtime.GOMAXPROCS(2)
 
-			// verify sound file exists
-			_, fileErr := os.Stat(sound)
+		var config Config
 
-			if fileErr != nil {
-				log.Fatal("Sound file is missing: ", sound)
-			}
+		// initialize configuration
+		config = initConfig(true)
 
-			if 0 != len(t.Data) {
-				for i := range t.Data[0].Data {
-					time.Sleep(time.Second)
-					if t.Data[0].Data[i] > 0 {
+		// add WaitGroups for the number of tags in the configuration
+		// concurrency implementation based on https://www.goinggo.net/2014/01/concurrency-goroutines-and-gomaxprocs.html
+		wg.Add(len(config.Tags))
 
-						if strings.HasSuffix(sound, ".mp3") {
-							playMP3(sound)
-						} else {
-							playWAV(sound)
+		// set Timeseries endpoint
+		var timeseriesEndpoint = apiURL + "/corps/" + config.CorpName + "/sites/" + config.SiteName + "/timeseries/requests"
+
+		apiResponseChannel := make(chan string)
+
+		var now = int32(time.Now().Unix())
+
+		for {
+			var fromUntil = fmt.Sprintf("&from=%d&until=%d", now-interval, now)
+
+			// for each tag in configuration launch a goroutine
+			for i := range config.Tags {
+				// get tag configuration
+				tag := config.Tags[i].Name
+				sound := config.Tags[i].Sound
+				endpoint := timeseriesEndpoint + "?tag=" + tag + fromUntil
+
+				go APIRequest(config.Username, config.Password, endpoint, apiResponseChannel)
+
+				var payload = <-apiResponseChannel
+
+				// initialize Timeseries object and load json payload data
+				var t Timeseries
+
+				unmarshalErr := json.Unmarshal([]byte(payload), &t)
+				if unmarshalErr != nil {
+					log.Fatal(unmarshalErr)
+				}
+
+				// verify sound file exists
+				_, fileErr := os.Stat(sound)
+
+				if fileErr != nil {
+					log.Fatal("Sound file is missing: ", sound)
+				}
+
+				if 0 != len(t.Data) {
+					for i := range t.Data[0].Data {
+						time.Sleep(time.Second)
+						if t.Data[0].Data[i] > 0 {
+
+							if strings.HasSuffix(sound, ".mp3") {
+								playMP3(sound)
+							} else {
+								playWAV(sound)
+							}
 						}
 					}
 				}
 			}
+
+			// sleep for interval before doing it all over again
+			time.Sleep(time.Second * interval)
 		}
 
-		// sleep for interval before doing it all over again
-		time.Sleep(time.Second * interval)
 	}
 
 	// wait for WaitGroups
