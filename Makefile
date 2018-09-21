@@ -1,4 +1,8 @@
-install:
+# sigsci-sounds Makefile
+
+all: deps lint build
+
+deps:
 	go get github.com/hajimehoshi/go-mp3
 	go get github.com/hajimehoshi/oto
 	go get github.com/pkg/errors
@@ -7,8 +11,15 @@ install:
 	go get github.com/faiface/beep
 	go get github.com/signalsciences/go-sigsci
 
+build:
+	go build sigsci-sounds.go
+
+install:
+	go install sigsci-sounds.go
+
 lint:
 	find . -name '*.go' | xargs gofmt -w -s
+	golint sigsci-sounds.go
 	go vet
 
 run:
@@ -16,3 +27,6 @@ run:
 
 test:
 	go run sigsci-sounds.go test
+
+clean:
+	-rm sigsci-sounds
