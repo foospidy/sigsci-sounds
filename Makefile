@@ -9,7 +9,8 @@ install:
 
 lint:
 	clear
-	golint sigsci-sounds.go
+	#golint sigsci-sounds.go
+	find . -name '*.go' | xargs gofmt -w -s
 
 run:
 	go run sigsci-sounds.go  
