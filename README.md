@@ -45,7 +45,7 @@ Note: You can edit theme files and include your API information (email, password
 
 You can edit and create themes!
 
-The theme file is JSON format. See the provided [configuration file] (https://github.com/foospidy/sigsci-sounds/blob/master/themes/star-trek-tos.conf) as an example.
+The theme file is JSON format. See one of the provided [configuration files](https://github.com/foospidy/sigsci-sounds/blob/master/themes/star-trek-tos.conf) as an example.
 
 To customize a theme you only need to edit the `"Tags": []` section of the file. This section is a JSON array where each entry requires two fields: name and sound.
 
