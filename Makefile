@@ -15,6 +15,7 @@ build:
 	go build sigsci-sounds.go
 
 install:
+	export GOBIN=$GOPATH/bin
 	go install sigsci-sounds.go
 
 lint:
