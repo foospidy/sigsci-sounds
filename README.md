@@ -1,10 +1,11 @@
+# sigsci-sounds
+
+Listen to the soothing sounds of attacks and anomalies.
+
 [![Build Status](https://travis-ci.org/foospidy/sigsci-sounds.svg?branch=master)](https://travis-ci.org/foospidy/sigsci-sounds)
 [![Go Report Card](https://goreportcard.com/badge/github.com/foospidy/sigsci-sounds)](https://goreportcard.com/report/github.com/foospidy/sigsci-sounds)
 
-# sigsci-sounds
-Listen to the soothing sounds of attacks and anomalies.
-
-### Description
+## Description
 
 The [Signal Sciences](https://signalsciences.com) web protection platform offers a rich API that enables limitless integrations and automation. Or, at least only limited by your imagination. As an example of this, sigsci-sounds is a utility to audibility monitor when Signal Sciences detects attack or anomaly events against your web site. You literally can listen to your site being attacked.
 
@@ -12,22 +13,41 @@ The utility is configurable so you can define which attacks or anomalies you wan
 
 Note: obviously you must be a Signal Sciences customer to make use of this utility.
 
-### Requirements
+## Requirements
 
 - Golang 1.7 or higher.
 - A Signal Sciences API account.
 
-### Instructions
+## Instructions
 
-If you have `make` on your system run `make install`, be sure your `$GOPATH` is set. Or you can run `make run` to build and run sigsci-sounds.
+__Be sure to have your `GOPATH` set properly.__
 
-By default sigsci-sounds will look for the configuration file in its current directory, e.g. `./sigsci-sounds.conf`. However, you can export a different location using the variable `SIGSCI_SOUNDS_CONFIG`, e.g. `export SIGSCI_SOUNDS_CONFIG=/etc/sigsci/sigsci-sounds.conf`.
+If you have `make` on your system run `make all` to build the binary. Once built, you can run `./sigsci-sounds`. Or you can run `make run` to run sigsci-sounds without building the binary. If you do not have `make`, You can run `go build -i sigsci-sounds.go` to build the binary.
 
-The configuration file is JSON format. It requires your API account username and password, corp name and site name you want to monitor, and at least one tag entry. See the provided [configuration file] (https://github.com/foospidy/sigsci-sounds/blob/master/themes/star-trek-tos.conf) as an example.
+### Configure SigSci API Info
 
-#### Defining a tag entry
+When accessing the [Signal Sciences API](https://docs.signalsciences.net/api/) you need to specify your credentials (email and password), corp name, and site name. You can do this via environment variables, example:
 
-Each entry requires two fields: name and sound.
+```bash
+export SIGSCI_EMAIL=<your email>
+export SIGSCI_PASSWORD=<your password>
+export SIGSCI_CORP=<your corp name>
+export SIGSCI_SITE=<site name of site to be monitored by sigsci-sounds>
+```
 
-- __name__ is the actual tag "short name" you want to monitor. This can be a Signal Sciences default sytem tag, or a custom tag.
+### Configure sigsci-sounds Themes
+
+By default sigsci-sounds will use the theme file `themes/sigsci-sounds-osx.conf`. However, you can use a different theme by setting the `SIGSCI_SOUNDS_CONFIG` environment variable, e.g. `export SIGSCI_SOUNDS_CONFIG=theme/star-trek-tos.conf`.
+
+Note: You can edit theme files and include your API information (email, password, corp, site), rather than setting those values as environment variables.
+
+## Themes
+
+You can edit and create themes!
+
+The theme file is JSON format. See the provided [configuration file] (https://github.com/foospidy/sigsci-sounds/blob/master/themes/star-trek-tos.conf) as an example.
+
+To customize a theme you only need to edit the `"Tags": []` section of the file. This section is a JSON array where each entry requires two fields: name and sound.
+
+- __name__ is the actual tag "short name" you want to monitor. This can be a Signal Sciences default sytem tag or a custom tag.
 - __sound__ is the path to the sound file you want to play for the specified tag name.

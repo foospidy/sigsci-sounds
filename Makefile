@@ -1,6 +1,6 @@
 # sigsci-sounds Makefile
 
-all: deps lint build
+all: deps build
 
 deps:
 	go get github.com/hajimehoshi/go-mp3
@@ -12,7 +12,7 @@ deps:
 	go get github.com/signalsciences/go-sigsci
 
 build:
-	go build sigsci-sounds.go
+	go build -i sigsci-sounds.go
 
 install:
 	export GOBIN=$GOPATH/bin
