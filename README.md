@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/foospidy/sigsci-sounds)](https://goreportcard.com/report/github.com/foospidy/sigsci-sounds)
+
 # sigsci-sounds
 Listen to the soothing sounds of attacks and anomalies.
 
