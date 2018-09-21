@@ -1,4 +1,5 @@
 language: go
 install:
+        - apt-get install libasound2-dev
         - go get -u github.com/alecthomas/gometalinter
         - gometalinter --install
