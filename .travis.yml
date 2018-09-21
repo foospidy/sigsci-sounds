@@ -1,6 +1,6 @@
 language: go
 env:
-  - PATH=$PATH:$GOPATH/bin
+  - GOBIN=$PATH:$GOPATH/bin
 install:
   - sudo apt-get install -y libasound2-dev
   - go get -u github.com/alecthomas/gometalinter
