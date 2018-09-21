@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
-	"net/http/cookiejar"
 	"net/url"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -18,6 +17,7 @@ import (
 	"github.com/faiface/beep/mp3"
 	"github.com/faiface/beep/speaker"
 	"github.com/faiface/beep/wav"
+	sigsci "github.com/signalsciences/go-sigsci"
 )
 
 const (
@@ -116,52 +116,18 @@ func initConfig(initVariables bool) Config {
 }
 
 // APIRequest authenticates and makes a request to specified endpoint.
-func APIRequest(username string, password string, endpoint string, ch chan<- string) {
-	form := url.Values{
-		"email":    []string{username},
-		"password": []string{password},
+func APIRequest(username string, password string, corp string, site string, query url.Values, ch chan<- []sigsci.Timeseries) {
+	sc, err := sigsci.NewClient(username, password)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	var session []*http.Cookie
-	req, _ := http.NewRequest("POST", loginEndpoint, strings.NewReader(form.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	client := &http.Client{}
-	var transport http.RoundTripper = &http.Transport{}
-	resp, transportErr := transport.RoundTrip(req)
-
-	if transportErr != nil {
-		log.Fatal(fmt.Sprintf("Error connecting to API: %v", transportErr))
+	data, err := sc.GetTimeseries(corp, site, query)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	// check for invalid login
-	if "/login?p=invalid" == resp.Header["Location"][0] {
-		log.Fatal("Invalid Login")
-	}
-
-	// get session cookie and store in cookie jar
-	session = resp.Cookies()
-	jar, _ := cookiejar.New(nil)
-	u, _ := url.Parse(endpoint)
-	jar.SetCookies(u, session)
-	client.Jar = jar
-
-	// call timeseries API endpoint to get json payload
-	req, _ = http.NewRequest("GET", endpoint, nil)
-	resp, clientErr := client.Do(req)
-
-	if clientErr != nil {
-		log.Fatal(fmt.Sprintf("Error connecting to API: %v", clientErr))
-	}
-
-	defer resp.Body.Close()
-
-	payload, ioErr := ioutil.ReadAll(resp.Body)
-
-	if ioErr != nil {
-		log.Fatal(fmt.Sprintf("Unable to read API response: %v", ioErr))
-	}
-
-	ch <- fmt.Sprintf("%s", payload)
+	ch <- data
 }
 
 func playWAV(sound string) {
@@ -229,9 +195,9 @@ func testConfig() {
 
 func main() {
 	var test = false
-	if(len(os.Args) > 1) {
+	if len(os.Args) > 1 {
 
-		if(os.Args[1] == "test") {
+		if os.Args[1] == "test" {
 			test = true
 		}
 	}
@@ -255,46 +221,40 @@ func main() {
 		// concurrency implementation based on https://www.goinggo.net/2014/01/concurrency-goroutines-and-gomaxprocs.html
 		wg.Add(len(config.Tags))
 
-		// set Timeseries endpoint
-		var timeseriesEndpoint = apiURL + "/corps/" + config.CorpName + "/sites/" + config.SiteName + "/timeseries/requests"
-
-		apiResponseChannel := make(chan string)
+		apiResponseChannel := make(chan []sigsci.Timeseries)
 
 		var now = int32(time.Now().Unix())
 
 		for {
-			var fromUntil = fmt.Sprintf("&from=%d&until=%d", now-interval, now)
+			var from = int(now - interval)
+			var until = int(now)
 
 			// for each tag in configuration launch a goroutine
 			for i := range config.Tags {
 				// get tag configuration
 				tag := config.Tags[i].Name
 				sound := config.Tags[i].Sound
-				endpoint := timeseriesEndpoint + "?tag=" + tag + fromUntil
 
-				go APIRequest(config.Username, config.Password, endpoint, apiResponseChannel)
+				query := url.Values{}
+				query.Add("from", strconv.Itoa(from))
+				query.Add("until", strconv.Itoa(until))
+				query.Add("tag", tag)
+
+				go APIRequest(config.Username, config.Password, config.CorpName, config.SiteName, query, apiResponseChannel)
 
 				var payload = <-apiResponseChannel
 
-				// initialize Timeseries object and load json payload data
-				var t Timeseries
-
-				unmarshalErr := json.Unmarshal([]byte(payload), &t)
-				if unmarshalErr != nil {
-					log.Fatal(unmarshalErr)
-				}
-
-				// verify sound file exists
 				_, fileErr := os.Stat(sound)
 
 				if fileErr != nil {
 					log.Fatal("Sound file is missing: ", sound)
 				}
 
-				if 0 != len(t.Data) {
-					for i := range t.Data[0].Data {
+				if 0 != len(payload[0].Data) {
+					for i := range payload[0].Data {
 						time.Sleep(time.Second)
-						if t.Data[0].Data[i] > 0 {
+
+						if payload[0].Data[i] > 0 {
 
 							if strings.HasSuffix(sound, ".mp3") {
 								playMP3(sound)

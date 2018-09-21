@@ -8,7 +8,6 @@ install:
 	go get github.com/signalsciences/go-sigsci
 
 lint:
-	clear
 	find . -name '*.go' | xargs gofmt -w -s
 	go vet
 
