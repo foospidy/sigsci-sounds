@@ -1,5 +1,6 @@
 language: go
 install:
-        - sudo apt-get install -y libasound2-dev
-        - go get -u github.com/alecthomas/gometalinter
-        - gometalinter --install
+  - sudo apt-get install -y libasound2-dev
+  - go get -u github.com/alecthomas/gometalinter
+  - gometalinter --install
+script: make lint

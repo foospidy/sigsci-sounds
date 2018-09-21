@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/foospidy/sigsci-sounds.svg?branch=master)](https://travis-ci.org/foospidy/sigsci-sounds)
 [![Go Report Card](https://goreportcard.com/badge/github.com/foospidy/sigsci-sounds)](https://goreportcard.com/report/github.com/foospidy/sigsci-sounds)
 
 # sigsci-sounds
