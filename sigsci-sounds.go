@@ -83,9 +83,9 @@ func initConfig(initVariables bool) Config {
 	// decode json and load config object
 	var c Config
 
-	jsonErr := json.Unmarshal(file, &c)
-	if jsonErr != nil {
-		log.Fatal(jsonErr)
+	err := json.Unmarshal(file, &c)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	if initVariables {
