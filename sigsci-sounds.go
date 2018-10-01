@@ -74,9 +74,9 @@ func initConfig(initVariables bool) Config {
 	}
 
 	// read the configuration file
-	file, e := ioutil.ReadFile(configFile)
+	file, err := ioutil.ReadFile(configFile)
 
-	if e != nil {
+	if err != nil {
 		log.Fatal("Error reading file!")
 	}
 
