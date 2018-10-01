@@ -83,7 +83,7 @@ func initConfig(initVariables bool) Config {
 	// decode json and load config object
 	var c Config
 
-	err := json.Unmarshal(file, &c)
+	err = json.Unmarshal(file, &c)
 	if err != nil {
 		log.Fatal(err)
 	}
